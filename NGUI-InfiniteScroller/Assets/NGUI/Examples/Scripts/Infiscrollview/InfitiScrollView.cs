@@ -47,7 +47,7 @@ public class InfitiScrollView : MonoBehaviour
 
     //物体坐标
     private Vector3 _cellSizeVector3 = Vector3.zero;
-    private  float SetCellSize
+    private float SetCellSize
     {
         set
         {
@@ -74,33 +74,33 @@ public class InfitiScrollView : MonoBehaviour
     void Start()
     {
         //初始化测试数据
-        for(int i=0;i<20;i++)
+        for (int i = 0; i < 20; i++)
         {
             TestDataList.Add(i.ToString());
             TestSize.Add(i % 2 == 0 ? 150 : 250);
         }
-        
+
         init();
     }
     private void initScrollBar()
     {
         float sizeSum = 0;
-        foreach(var size in TestSize)
+        foreach (var size in TestSize)
         {
             sizeSum += size;
         }
         sizeCount = sizeSum;
         ScrollBar.barSize = initoffset / sizeCount;
         ScrollBar.value = 0;
-        ScrollBar.onChange.Add(new EventDelegate(()=> 
+        ScrollBar.onChange.Add(new EventDelegate(() =>
         {
             SetScrollBar();
         }));
     }
     private void UpdataScrollBar()
     {
-        float currentMoveArea =  Math.Abs(scrollView.panel.clipOffset.y)- initoffset;
-        ScrollBar.value = currentMoveArea / (sizeCount - initoffset*2);
+        float currentMoveArea = Math.Abs(scrollView.panel.clipOffset.y) - initoffset;
+        ScrollBar.value = currentMoveArea / (sizeCount - initoffset * 2);
     }
     public void SetScrollBar()
     {
@@ -114,7 +114,7 @@ public class InfitiScrollView : MonoBehaviour
     private bool isLoad = false;
     private void LateUpdate()
     {
-        if(!isLoad)
+        if (!isLoad)
         {
             scrollView.ResetPosition();
             isLoad = true;
@@ -123,7 +123,7 @@ public class InfitiScrollView : MonoBehaviour
             initScrollBar();
             initTransform = transform.localPosition.y;
         }
-        
+
     }
     public void UpdataTest(Cell cell)
     {
@@ -137,7 +137,7 @@ public class InfitiScrollView : MonoBehaviour
     public void ReLoadData()
     {
         scrollView.ResetPosition();
-        for (int i=0;i<cellDatas.Count;i++)
+        for (int i = 0; i < cellDatas.Count; i++)
         {
             cellDatas[i].Cellprefab.SetActive(false);
             cellDatasCache.Enqueue(cellDatas[i]);
@@ -150,18 +150,18 @@ public class InfitiScrollView : MonoBehaviour
     public void JumpTo()
     {
         int index = 10;
-       // scrollView.ResetPosition();
+        // scrollView.ResetPosition();
         for (int i = 0; i < cellDatas.Count; i++)
         {
             cellDatas[i].Cellprefab.SetActive(false);
             cellDatasCache.Enqueue(cellDatas[i]);
         }
         cellDatas.Clear();
-        if(firstCacheCell!=null)
+        if (firstCacheCell != null)
             cellDatasCache.Enqueue(firstCacheCell);
         else
             firstCacheCell = null;
-        if(LastCacheCell!=null)
+        if (LastCacheCell != null)
             cellDatasCache.Enqueue(LastCacheCell);
         LastCacheCell = null;
 
@@ -171,7 +171,7 @@ public class InfitiScrollView : MonoBehaviour
         //初始化生成数量
         int CreateCount = 0;
         scrollClipArea = posXorY ? scrollView.panel.finalClipRegion.z : scrollView.panel.finalClipRegion.w;
-        while (AreaCellSizeCount < 1900+scrollClipArea && Index < TestDataList.Count)
+        while (AreaCellSizeCount < 1900 + scrollClipArea && Index < TestDataList.Count)
         {
 
             GameObject prefab = null;
@@ -185,7 +185,7 @@ public class InfitiScrollView : MonoBehaviour
             {
                 cell = cellDatasCache.Dequeue();
                 cell.dataIndex = Index++;
-                
+
                 prefab = cell.Cellprefab;
                 prefab.SetActive(true);
             }
@@ -203,7 +203,7 @@ public class InfitiScrollView : MonoBehaviour
         firstCell = cellDatas[0];
         LastCell = cellDatas.Count > 1 ? cellDatas[cellDatas.Count - 1] : firstCell;
     }
-    public void init(Action<Cell> updataCallBack = null,Func<int,float> getCellSizeCallback = null)
+    public void init(Action<Cell> updataCallBack = null, Func<int, float> getCellSizeCallback = null)
     {
         _updataCallBack = UpdataTest;
         _getDataSizeCallBack = SetSizeTest;
@@ -217,8 +217,8 @@ public class InfitiScrollView : MonoBehaviour
     private Cell GetFreeCell()
     {
         Cell cellCache = null;
-        
-        if(cellDatasCache.Count==0)
+
+        if (cellDatasCache.Count == 0)
         {
             GameObject prefab = Instantiate(Prefab, scrollView.transform);
             cellCache = new Cell(prefab, 0);
@@ -229,7 +229,7 @@ public class InfitiScrollView : MonoBehaviour
         }
         return cellCache;
     }
-    
+
     private void initLoad()
     {
         int Index = 0;
@@ -243,11 +243,12 @@ public class InfitiScrollView : MonoBehaviour
 
             GameObject prefab = null;
             Cell cell = null;
-            if (cellDatasCache.Count==0)
+            if (cellDatasCache.Count == 0)
             {
-                 prefab = Instantiate(Prefab, scrollView.transform);
-                 cell = new Cell(prefab, Index++);
-            }else
+                prefab = Instantiate(Prefab, scrollView.transform);
+                cell = new Cell(prefab, Index++);
+            }
+            else
             {
                 cell = cellDatasCache.Dequeue();
                 prefab = cell.Cellprefab;
@@ -255,7 +256,7 @@ public class InfitiScrollView : MonoBehaviour
             cellDatas.Add(cell);
 
             //坐标运算
-            SetCellSize = posXorY? AreaCellSizeCount : -AreaCellSizeCount;
+            SetCellSize = posXorY ? AreaCellSizeCount : -AreaCellSizeCount;
             prefab.transform.localPosition = _cellSizeVector3;
             AreaCellSizeCount += _getDataSizeCallBack(CreateCount);
             cell.SetSize(posXorY, (int)_getDataSizeCallBack(CreateCount));
@@ -282,10 +283,10 @@ public class InfitiScrollView : MonoBehaviour
     void Update()
     {
         //有滑动
-        if (currentPos!= ScrollPos&& LastScrollPos!= ScrollPos)
+        if (currentPos != ScrollPos && LastScrollPos != ScrollPos)
         {
             LastScrollPos = ScrollPos;
-            if(scrollView.isDragging)
+            if (scrollView.isDragging)
             {
                 UpdataScrollBar();
             }
@@ -316,7 +317,7 @@ public class InfitiScrollView : MonoBehaviour
                     LoadFirstCell();
                 }
             }
-            
+
         }
     }
     private void LoadFirstCell()
@@ -363,8 +364,8 @@ public class InfitiScrollView : MonoBehaviour
             cellDatas.Add(firstCacheCell);
             _updataCallBack?.Invoke(firstCell);
         }
-        
-        
+
+
     }
     private void LoadLastCell()
     {
@@ -408,7 +409,7 @@ public class InfitiScrollView : MonoBehaviour
             cellDatas.Add(LastCacheCell);
             _updataCallBack?.Invoke(LastCell);
         }
-       
+
     }
 }
 
@@ -423,7 +424,7 @@ public class Cell
         Cellprefab = cellPrefab;
         dataIndex = index;
     }
-    public void SetSize(bool isX,int size)
+    public void SetSize(bool isX, int size)
     {
         if (isX)
             Cellprefab.GetComponent<UIWidget>().width = size;
