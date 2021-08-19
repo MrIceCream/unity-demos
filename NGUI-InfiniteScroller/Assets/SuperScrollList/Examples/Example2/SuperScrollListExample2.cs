@@ -35,6 +35,7 @@ public class SuperScrollListExample2 : MonoBehaviour
 		{
 			index = dataSize - 1 - index;
 		}
+
 		Debug.Log("Click item " + index.ToString());
 	}
 

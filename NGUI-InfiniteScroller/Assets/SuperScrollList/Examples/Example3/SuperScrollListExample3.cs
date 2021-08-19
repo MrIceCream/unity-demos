@@ -34,9 +34,7 @@ public class SuperScrollListExample3 : MonoBehaviour
 		wrapper.SetRefreshCallback(OnItemRefresh);
 		wrapper.SetClickCallback(OnItemClick);
 		wrapper.SpawnNewList(elementPrefab, dataSize, 0);
-
-        wrapper.SetProgress(0.5f);
-    }
+	}
 
 	public void InsertElement(int index)
 	{
@@ -63,8 +61,7 @@ public class SuperScrollListExample3 : MonoBehaviour
 		selectedIndex = index;
 		wrapper.RefreshSpecifiedItem(prev);
 		wrapper.RefreshSpecifiedItem(selectedIndex);
-        wrapper.SetProgress(0.5f);
-    }
+	}
 
 	void OnItemRefresh(GameObject go, int index)
 	{

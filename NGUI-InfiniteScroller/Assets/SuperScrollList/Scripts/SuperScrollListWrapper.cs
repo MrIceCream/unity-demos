@@ -248,7 +248,99 @@ public class SuperScrollListWrapper : MonoBehaviour
 		ScrollView.InvalidateBounds();
 		ScrollView.RestrictWithinBounds(ScrollView.dragEffect == UIScrollView.DragEffect.None, ScrollView.canMoveHorizontally, ScrollView.canMoveVertically);
 	}
-	
+
+	/// <summary>
+	/// Try to center on the index
+	/// </summary>
+	/// <param name="dataIndex"></param>
+	public void LocateSpecifiedItem(int dataIndex)
+	{
+		if (dataIndex < 0 || dataIndex >= _dataSize)
+		{
+			return;
+		}
+
+		Transform panelTF = Panel.transform;
+
+		// transfer clipRegion's offset to clipOffset
+		Panel.clipOffset += (Vector2)Panel.baseClipRegion;
+		Panel.baseClipRegion = new Vector4(0, 0, Panel.baseClipRegion.z, Panel.baseClipRegion.w);
+		
+		int lineIndex = dataIndex / LineCapacity;
+		Vector3 lineLocalPos = _firstLine.members[0].localPosition + CalculateLinesDistanceVector() * lineIndex;
+		Vector3 linePosInPanel = panelTF.InverseTransformPoint(transform.TransformPoint(lineLocalPos));
+		if (!ScrollView.canMoveHorizontally)
+		{
+			linePosInPanel.x = 0;
+		}
+		if (!ScrollView.canMoveVertically)
+		{
+			linePosInPanel.y = 0;
+		}
+		
+		UIPanel panel = ScrollView.panel;
+		Transform svTF = ScrollView.transform;
+		
+		Vector2 clipOffset = panel.clipOffset;
+		Vector3 panelOrgPos = svTF.localPosition + (Vector3)clipOffset;
+
+		Vector2 panelOffset = new Vector2(ScrollView.canMoveHorizontally ? linePosInPanel.x : 0, ScrollView.canMoveVertically ? linePosInPanel.y : 0);
+		svTF.localPosition = panelOrgPos - (Vector3)panelOffset;
+		panel.clipOffset = panelOffset;
+		
+		bool constrain = panel.clipping != UIDrawCall.Clipping.None && ScrollView.restrictWithinPanel;
+		if (constrain)
+		{
+			Bounds b = ScrollView.bounds;
+			Vector4 cr = panel.finalClipRegion;
+
+			Rect viewRect = new Rect(cr.x - cr.z * 0.5f, cr.y - cr.w * 0.5f, cr.z, cr.w);
+			if (panel.clipping == UIDrawCall.Clipping.SoftClip)
+			{
+				viewRect.xMin += panel.clipSoftness.x;
+				viewRect.xMax -= panel.clipSoftness.x;
+				viewRect.yMin += panel.clipSoftness.y;
+				viewRect.yMax -= panel.clipSoftness.y;
+			}
+
+			Vector2 offset = new Vector2();
+
+			if (ScrollView.canMoveHorizontally)
+			{
+				float lDist = b.min.x - viewRect.xMin;
+				float rDist = viewRect.xMax - b.max.x;
+				if (lDist > 0 && rDist < 0)
+				{
+					offset.x = -Mathf.Min(Mathf.Abs(lDist), Mathf.Abs(rDist));
+				}
+				else if (lDist < 0 && rDist > 0)
+				{
+					offset.x = -Mathf.Min(Mathf.Abs(lDist), Mathf.Abs(rDist));
+				}
+			}
+			if (ScrollView.canMoveVertically)
+			{
+				float bDist = b.min.y - viewRect.yMin;
+				float tDist = viewRect.yMax - b.max.y;
+				if (bDist > 0 && tDist < 0)
+				{
+					offset.y = -Mathf.Min(Mathf.Abs(bDist), Mathf.Abs(tDist));
+				}
+				else if (bDist < 0 && tDist > 0)
+				{
+					offset.y = Mathf.Min(Mathf.Abs(bDist), Mathf.Abs(tDist));
+				}
+			}
+
+			panel.cachedTransform.localPosition += (Vector3)offset;
+			panel.clipOffset -= offset;
+		}
+
+		ScrollView.currentMomentum = Vector3.zero;
+		ScrollView.DisableSpring();
+		ScrollView.UpdateScrollbars(false);
+	}
+
 	#region Private Methods
 	private void Awake()
 	{
@@ -552,8 +644,6 @@ public class SuperScrollListWrapper : MonoBehaviour
 
 		public void Reposition(SuperScrollListWrapper wrapper)
 		{
-			UIPanel mPanel = wrapper.Panel;
-
 			// it seems can delete
 			NGUITools.SetDirty(wrapper);
 
